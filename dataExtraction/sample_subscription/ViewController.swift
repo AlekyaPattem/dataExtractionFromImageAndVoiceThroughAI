@@ -22,13 +22,68 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate  {
   override func viewDidLoad() {
     super.viewDidLoad()
     //    extractTextFromImage(UIImage(named: "sample2")!)
-//    callApiDataFromImage()
+    //    callApiDataFromImage()
     
     //    if let image = UIImage(named: "sample2") {
     //        analyzeImageWithGemini(image: image)
     //    }
     speechRecognizer?.delegate = self
     requestSpeechAuth()
+  }
+  
+  
+  private func showImageSourceOptions() {
+    let alert = UIAlertController(title: "Select Image", message: nil, preferredStyle: .actionSheet)
+    
+    // Camera Option
+    alert.addAction(UIAlertAction(title: "Take Photo", style: .default, handler: { _ in
+      self.openCamera()
+    }))
+    
+    // Gallery Option
+    alert.addAction(UIAlertAction(title: "Choose from Library", style: .default, handler: { _ in
+      self.openGallery()
+    }))
+    
+    // Cancel Option
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+    
+    // For iPad support
+    if let popover = alert.popoverPresentationController {
+      popover.sourceView = self.view
+      popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+      popover.permittedArrowDirections = []
+    }
+    
+    present(alert, animated: true)
+  }
+  
+  private func openCamera() {
+    guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+      print("Camera not available")
+      return
+    }
+    let picker = UIImagePickerController()
+    picker.sourceType = .camera
+    picker.delegate = self
+    picker.allowsEditing = true
+    present(picker, animated: true)
+  }
+  
+  private func openGallery() {
+    guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
+      print("Photo Library not available")
+      return
+    }
+    let picker = UIImagePickerController()
+    picker.sourceType = .photoLibrary
+    picker.delegate = self
+    picker.allowsEditing = true
+    present(picker, animated: true)
+  }
+  
+  @IBAction func imageButtonTapped(_ sender: Any) {
+    showImageSourceOptions()
   }
   
   @IBAction func micButtonTapped(_ sender: Any) {
@@ -140,7 +195,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate  {
         [
           "parts": [
             [
-              "text": "Extract subscription provider, plan name, price, and period from this image. Return only valid JSON in this format: {\"subscriptions\":[{\"provider\":\"string\",\"plans\":[{\"name\":\"string\",\"price\":\"string\",\"period\":\"string\"}]}]} If a value is missing, return it as an empty string."
+              "text": "Extract subscription provider, plan name, price, period and currency from this image. The currency must always be returned as a valid ISO 4217 currency code. Return only valid JSON in this format: {\"subscriptions\":[{\"provider\":\"string\",\"plans\":[{\"name\":\"string\",\"price\":\"string\",\"period\":\"string\",\"currency\":\"string\"}]}]} If a value is missing, return it as an empty string."
             ],
             [
               "inline_data": [
@@ -254,19 +309,39 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate  {
   
   //MARK: - Extract text from image using vision
   func extractTextFromImage(_ image: UIImage) {
-      guard let cgImage = image.cgImage else { return }
-      let requestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-      
-      let request = VNRecognizeTextRequest { (request, error) in
-          guard let observations = request.results as? [VNRecognizedTextObservation] else { return }
-          let text = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
-          print("Extracted text: \(text)")
-          // Parse text to detect subscription info
+    guard let cgImage = image.cgImage else { return }
+    let requestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+    
+    let request = VNRecognizeTextRequest { (request, error) in
+      guard let observations = request.results as? [VNRecognizedTextObservation] else { return }
+      let text = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
+      print("Extracted text: \(text)")
+      // Parse text to detect subscription info
+    }
+    request.recognitionLevel = .accurate
+    request.usesLanguageCorrection = true
+    
+    try? requestHandler.perform([request])
+  }
+}
+
+extension ViewController : UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+  func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+    picker.dismiss(animated: true)
+    
+    if let selectedImage = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
+      extractDataFromImage(image: selectedImage) { jsonString in
+        if let jsonString = jsonString {
+          print("Extracted JSON: \(jsonString)")
+        } else {
+          print("Failed to extract data")
+        }
       }
-      request.recognitionLevel = .accurate
-      request.usesLanguageCorrection = true
-      
-      try? requestHandler.perform([request])
+    }
+  }
+  
+  func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+    picker.dismiss(animated: true)
   }
 }
 

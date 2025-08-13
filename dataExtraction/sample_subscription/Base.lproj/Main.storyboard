@@ -17,6 +17,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="G7g-ho-fZH">
+                                <rect key="frame" x="284.33333333333331" y="694" width="70.666666666666686" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Image"/>
+                                <connections>
+                                    <action selector="imageButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="TVW-UC-yXh"/>
+                                </connections>
+                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gjN-sc-o8j">
                                 <rect key="frame" x="289" y="749" width="66" height="35"/>
                                 <state key="normal" title="Button"/>
@@ -30,6 +38,8 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="gjN-sc-o8j" secondAttribute="trailing" constant="38" id="B8j-1t-U55"/>
+                            <constraint firstItem="gjN-sc-o8j" firstAttribute="top" secondItem="G7g-ho-fZH" secondAttribute="bottom" constant="20" id="NFU-K1-MEP"/>
+                            <constraint firstItem="G7g-ho-fZH" firstAttribute="trailing" secondItem="gjN-sc-o8j" secondAttribute="trailing" id="Ucc-8M-DLw"/>
                             <constraint firstItem="gjN-sc-o8j" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="yZL-RX-OTB"/>
                         </constraints>
                     </view>
